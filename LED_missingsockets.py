@@ -136,8 +136,9 @@ def detect_LED(frame):
             dominant_color, color_percentages, draw_color = detect_led_color(original_image, center[0], center[1], radius)
             cv2.circle(frame, center, 1, draw_color, 2)  # Green center
             cv2.circle(frame, center, radius, draw_color, 2)  # Red outline
+            #print(center)
             ledid=getLEDID(center)
-            cv2.putText(frame,f"{ledid}: {center}",
+            cv2.putText(frame,f"{ledid}",
                         (center[0] + radius+5, center[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, draw_color, 2)
     return frame
@@ -197,14 +198,14 @@ def main():
                         frame = np.ascontiguousarray(frame)  # Ensure contiguous
                         
                         #print(devicesID)
-                        if stream_name=="Camera 2":  #(515, 127) and (1522, 850)
+                        if stream_name=="Camera 2": 
                             frame = frame[120:820, 500:1502]
-                        else:  #(342, 258) and (1451, 810)
+                        else: 
                             frame = frame[250:820, 340:1451]
                         frame= detect_LED(frame)  # Detect LED in the frame
                         frames[stream_name] = frame
                         cv2.imshow(stream_name, frame)
-                        cv2.imwrite(f"{stream_name}.png", frame)  # Save individual frames for inspection
+                        cv2.imwrite(f"{stream_name}.png", frame)
 
                 if len(frames) == 2:  # Ensure both frames are available
 
