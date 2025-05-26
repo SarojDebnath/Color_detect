@@ -2,6 +2,38 @@ import depthai as dai
 import cv2
 import contextlib
 import numpy as np
+import json
+import math
+global stream_name
+#Cam2 is capturing from Left.
+with open("C:/Users/sarojd/SDX330/Color_detect/data.json", 'r') as file:
+            config_data = json.load(file)
+current_id=[]
+stream_name="Camera 1"
+
+def getLEDID(center):
+    global config_data, stream_name, current_id
+    min_dist = float('inf')
+    ID = None
+
+    for key, value in config_data.items():
+        if stream_name == "Camera 1":
+            pass
+            # Only consider pon1 to pon16 and eth
+            #if not (key.startswith("pon") and key[3:].isdigit() and 1 <= int(key[3:]) <= 16 or key == "eth"):
+             #   continue
+
+        if isinstance(value, list) and len(value) == 2:
+            dist = math.sqrt((center[0] - value[0]) ** 2 + (center[1] - value[1]) ** 2)
+            if dist < min_dist:
+                min_dist = dist
+                ID = key
+
+    if ID and ID not in current_id:
+        current_id.append(ID)
+
+    return ID
+
 
 
 def detect_led_color(image, x, y, radius):
@@ -17,7 +49,6 @@ def detect_led_color(image, x, y, radius):
 
     # Convert ROI to HSV
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-
     # Define color ranges in HSV
     red_lower1 = np.array([0, 120, 70])
     red_upper1 = np.array([10, 255, 255])
@@ -105,7 +136,8 @@ def detect_LED(frame):
             dominant_color, color_percentages, draw_color = detect_led_color(original_image, center[0], center[1], radius)
             cv2.circle(frame, center, 1, draw_color, 2)  # Green center
             cv2.circle(frame, center, radius, draw_color, 2)  # Red outline
-            cv2.putText(frame,dominant_color,
+            ledid=getLEDID(center)
+            cv2.putText(frame,f"{ledid}: {center}",
                         (center[0] + radius+5, center[1]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, draw_color, 2)
     return frame
@@ -132,6 +164,7 @@ def create_pipeline():
     return pipeline
 
 def main():
+    global framename, stream_name
     with contextlib.ExitStack() as stack:
         device_infos = dai.Device.getAllAvailableDevices()[:2]
         if len(device_infos) < 2:
@@ -162,18 +195,16 @@ def main():
                         frame = cv2.resize(frame, (1706, 960))
                         frame = np.rot90(frame, 2)
                         frame = np.ascontiguousarray(frame)  # Ensure contiguous
-                        #(388, 247) and (1428, 817)
-                        #(490, 142) and (1498, 831)
                         
-                        if stream_name=="Camera 2":  #(1502, 126) and (488, 815)
-                            frame = frame[120:820, 488:1502]
+                        #print(devicesID)
+                        if stream_name=="Camera 2":  #(515, 127) and (1522, 850)
+                            frame = frame[120:820, 500:1502]
                         else:  #(342, 258) and (1451, 810)
                             frame = frame[250:820, 340:1451]
-
                         frame= detect_LED(frame)  # Detect LED in the frame
                         frames[stream_name] = frame
                         cv2.imshow(stream_name, frame)
-                        #cv2.imwrite(f"{stream_name}.png", frame)  # Save individual frames for inspection
+                        cv2.imwrite(f"{stream_name}.png", frame)  # Save individual frames for inspection
 
                 if len(frames) == 2:  # Ensure both frames are available
 
@@ -197,7 +228,7 @@ def main():
                     combined_frame = np.hstack((frame2, frame1))
 
                     # Print dimensions for debugging
-                    print(f"Frame1 shape: {frame1.shape}, Frame2 shape: {frame2.shape}, Combined shape: {combined_frame.shape}")
+                    #print(f"Frame1 shape: {frame1.shape}, Frame2 shape: {frame2.shape}, Combined shape: {combined_frame.shape}")
 
                     # Resize combined frame to fit display (adjust target_width based on your screen)
                     target_width = 1280  # Adjust to your screen resolution (e.g., 1920 for 1920x1080)
@@ -206,7 +237,7 @@ def main():
                         scale = target_width / combined_w
                         target_height = int(combined_h * scale)
                         combined_frame = cv2.resize(combined_frame, (target_width, target_height), interpolation=cv2.INTER_AREA)
-                        print(f"Resized combined frame to: {combined_frame.shape}")
+                        #print(f"Resized combined frame to: {combined_frame.shape}")
 
                     # Save the first combined frame to disk for inspection
                     if frame_count == 0:
