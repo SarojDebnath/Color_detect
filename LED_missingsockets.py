@@ -155,7 +155,7 @@ def create_pipeline():
     cam_rgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
     cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_4000X3000)  # 4056x3040
     cam_rgb.setFps(30)
-    cam_rgb.initialControl.setManualFocus(150)
+    cam_rgb.initialControl.setManualFocus(160)
     cam_rgb.initialControl.setManualExposure(8000, 100)
     cam_rgb.initialControl.setBrightness(-6) #-10 .. 10
     cam_rgb.initialControl.setManualWhiteBalance(1000)#1000..12000
@@ -230,7 +230,7 @@ def main():
                         frame2 = np.pad(frame2, ((pad_height, 0), (0, 0), (0, 0)), mode='constant', constant_values=0)
 
                     # Stack frames horizontally (Camera 2 on left, Camera 1 on right)
-                    combined_frame = np.hstack((frame2, frame1))
+                    combined_frame = np.hstack((frame1, frame2))
 
                     # Print dimensions for debugging
                     #print(f"Frame1 shape: {frame1.shape}, Frame2 shape: {frame2.shape}, Combined shape: {combined_frame.shape}")
