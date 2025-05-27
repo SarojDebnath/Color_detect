@@ -29,8 +29,8 @@ def getLEDID(center):
                 min_dist = dist
                 ID = key
 
-    if ID and ID not in current_id:
-        current_id.append(ID)
+    #if ID and ID not in current_id:
+     #   current_id.append(ID)
 
     return ID
 
@@ -108,7 +108,7 @@ def detect_LED(frame):
     original_image = frame.copy()  # Keep a copy of the original image for color detection
     image = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     # Convert grayscale image to binary using a threshold
-    blur_image = cv2.GaussianBlur(image, (5, 5), 1)  # Apply Gaussian blur to reduce noise
+    blur_image = cv2.GaussianBlur(image, (5,5), 1)  # Apply Gaussian blur to reduce noise
     _, binary_image = cv2.threshold(blur_image, 35, 255, cv2.THRESH_BINARY)
 
     kernel = np.ones((3, 3), np.uint8)  # 3x3 structuring element
@@ -177,9 +177,13 @@ def main():
         for i, device_info in enumerate(device_infos):
             device = stack.enter_context(dai.Device(create_pipeline(), device_info, usb_speed))
             q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-            stream_name = f"Camera {i+1}"
-            q_rgb_map.append((q_rgb, stream_name))
             devicesID.append(device_info.getMxId())
+            stream_name = "Camera 1" if devicesID[0].startswith("144") else "Camera 2"
+            if len(devicesID) > 1:
+                stream_name = "Camera 2" if devicesID[1].startswith("184") else "Camera 1"
+
+            q_rgb_map.append((q_rgb, stream_name))
+            print(f"Connected to {stream_name} with ID: {device_info.getMxId()}")
 
         # Create resizable window for combined frame
         cv2.namedWindow("Combined Cameras", cv2.WINDOW_NORMAL)
