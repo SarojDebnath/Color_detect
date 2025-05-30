@@ -128,7 +128,7 @@ def detect_LED(frame):
         dp=1,
         minDist=10,
         param1=10,
-        param2=9,
+        param2=7,
         minRadius=4,
         maxRadius=10
     )
