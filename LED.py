@@ -110,7 +110,6 @@ def detect_LED(frame):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, draw_color, 2)
     return frame
 
-
 #Rectangle for Camera 1 is between (490, 764) and (490, 766)
 #Rectangle for Camera 2 is between (1405, 100) and (1405, 100)
 # Dictionary to store state for each camera

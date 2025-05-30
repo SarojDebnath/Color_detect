@@ -36,8 +36,6 @@ def getLEDID(center):
 
     return ID
 
-
-
 def detect_led_color(image, x, y, radius):
     # Extract the region of interest (ROI) around the circle
     roi_size = int(radius * 2)  # Use the circle's diameter as ROI size
@@ -109,8 +107,14 @@ def detect_led_color(image, x, y, radius):
 def detect_LED(frame):
     original_image = frame.copy()  # Keep a copy of the original image for color detection
     image = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    # Convert grayscale image to binary using a threshold
-    #blur_image = cv2.GaussianBlur(image, (5,5), 1)  # Apply Gaussian blur to reduce noise
+    if stream_name == "Camera 1":
+        height, width = image.shape[:2]
+        crop_y_start = height // 2 
+        crop_y_end = height     
+        crop_x_end = (width * 3) // 5
+        cropped_image = image[crop_y_start:crop_y_end, 0:crop_x_end]
+        cropped_image = (cropped_image / 1.5).astype(np.uint8)
+        image[crop_y_start:crop_y_end, 0:crop_x_end] = cropped_image
     _, binary_image = cv2.threshold(image, 30, 255, cv2.THRESH_BINARY)
 
     kernel = np.ones((3, 3), np.uint8)  # 3x3 structuring element
@@ -122,10 +126,10 @@ def detect_LED(frame):
         dilated,
         cv2.HOUGH_GRADIENT,
         dp=1,
-        minDist=5,
+        minDist=10,
         param1=10,
         param2=9,
-        minRadius=5,
+        minRadius=4,
         maxRadius=10
     )
 
