@@ -26,6 +26,8 @@ def getLEDID(center):
         if isinstance(value, list) and len(value) == 2:
             dist = math.sqrt((center[0] - value[0]) ** 2 + (center[1] - value[1]) ** 2)
             if dist < min_dist:
+                if dist > 10:
+                    continue
                 min_dist = dist
                 ID = key
 
@@ -108,8 +110,8 @@ def detect_LED(frame):
     original_image = frame.copy()  # Keep a copy of the original image for color detection
     image = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     # Convert grayscale image to binary using a threshold
-    blur_image = cv2.GaussianBlur(image, (5,5), 1)  # Apply Gaussian blur to reduce noise
-    _, binary_image = cv2.threshold(blur_image, 35, 255, cv2.THRESH_BINARY)
+    #blur_image = cv2.GaussianBlur(image, (5,5), 1)  # Apply Gaussian blur to reduce noise
+    _, binary_image = cv2.threshold(image, 30, 255, cv2.THRESH_BINARY)
 
     kernel = np.ones((3, 3), np.uint8)  # 3x3 structuring element
     dilated = cv2.dilate(binary_image, kernel, iterations=1)
@@ -132,15 +134,15 @@ def detect_LED(frame):
         for i in circles[0, :]:
             center = (i[0], i[1])
             radius = i[2]
-            # Detect color of the LED
-            dominant_color, color_percentages, draw_color = detect_led_color(original_image, center[0], center[1], radius)
-            cv2.circle(frame, center, 1, draw_color, 2)  # Green center
-            cv2.circle(frame, center, radius, draw_color, 2)  # Red outline
-            #print(center)
             ledid=getLEDID(center)
-            cv2.putText(frame,f"{ledid}",
-                        (center[0] + radius+5, center[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, draw_color, 2)
+            # Detect color of the LE
+            
+            if ledid is not None:
+                dominant_color, color_percentages, draw_color = detect_led_color(original_image, center[0], center[1], radius)
+                cv2.circle(frame, center, 1, draw_color, 2)  # Green center
+                cv2.circle(frame, center, radius, draw_color, 2)  # Red outline
+                #print(center)
+                cv2.putText(frame,f"{ledid}",(center[0] + radius+5, center[1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, draw_color, 2)
     return frame
 
 
@@ -155,7 +157,7 @@ def create_pipeline():
     cam_rgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
     cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_4000X3000)  # 4056x3040
     cam_rgb.setFps(30)
-    cam_rgb.initialControl.setManualFocus(160)
+    cam_rgb.initialControl.setManualFocus(150)
     cam_rgb.initialControl.setManualExposure(8000, 100)
     cam_rgb.initialControl.setBrightness(-6) #-10 .. 10
     cam_rgb.initialControl.setManualWhiteBalance(1000)#1000..12000
